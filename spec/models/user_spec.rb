@@ -44,20 +44,24 @@ describe User do
 
   describe "when name is not present" do
     before { @user.name = " " }
+
     it { should_not be_valid }
   end
 
   describe "when name is too long" do
     before { @user.name = "a" * 51 }
+
     it { should_not be_valid }
   end
 
   describe "when email is not present" do
     before { @user.email = " " }
+
     it { should_not be_valid }
   end
 
   describe "when email format is invalid" do
+
     it "should be invalid" do
       addresses = %w[user@foo,com user_at_foo.org example.user@foo.
                      foo@bar_baz.com foo@bar+baz.com]
@@ -69,6 +73,7 @@ describe User do
   end
 
   describe "when email format is valid" do
+
     it "should be valid" do
       addresses = %w[user@foo.COM A_US-ER@f.b.org frst.lst@foo.jp a+b@baz.cn]
       addresses.each do |valid_address|
@@ -112,16 +117,19 @@ describe User do
       @user = User.new(name: "Example User", email: "user@example.com",
                        password: " ", password_confirmation: " ")
     end
-      it { should_not be_valid }
+
+    it { should_not be_valid }
   end
 
   describe "when password doesn't match confirmation" do
     before { @user.password_confirmation = "mismatch" }
+
     it { should_not be_valid }
   end
 
   describe "with a password that's too short" do
     before { @user.password = @user.password_confirmation = "a" * 5 }
+
     it { should be_invalid }
   end
 
@@ -130,6 +138,7 @@ describe User do
     let(:found_user) { User.find_by(email: @user.email) }
 
     describe "with valid password" do
+
       it { should eq found_user.authenticate(@user.password) }
     end
 
@@ -143,11 +152,11 @@ describe User do
   
   describe "remember token" do
     before { @user.save }
+
     its(:remember_token) { should_not be_blank }
   end
 
   describe "micropost associations" do
-
     before { @user.save }
     let!(:older_micropost) do
       FactoryGirl.create(:micropost, user: @user, created_at: 1.day.ago)
@@ -173,11 +182,22 @@ describe User do
       let(:unfollowed_post) do
         FactoryGirl.create(:micropost, user: FactoryGirl.create(:user))
       end
+      let(:followed_user) { FactoryGirl.create(:user) }
+      before do
+        @user.follow!(followed_user)
+        3.times { followed_user.microposts.create!(content: "Lorem ipsum") }
+      end
 
       its(:feed) { should include(newer_micropost) }
       its(:feed) { should include(older_micropost) }
       its(:feed) { should_not include(unfollowed_post) }
+      its(:feed) do
+        followed_user.microposts.each do |micropost|
+          should include(micropost)
+        end
+      end
     end
+  
   end
   
   describe "following" do
@@ -192,6 +212,7 @@ describe User do
 
     describe "followed user" do
       subject { other_user }
+
       its(:followers) { should include(@user) }
     end
 
